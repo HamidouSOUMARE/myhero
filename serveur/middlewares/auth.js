@@ -39,7 +39,30 @@ function redirectIfLoggedIn(req, res, next) {
     });
 }
 
+const requireAuth = (req, res, next) => {
+    // Récupérez le token à partir des cookies ou d'un en-tête de requête, par exemple
+    const token = req.cookies.token || req.header('x-auth-token');
+  
+    // Vérifiez si le token existe
+    if (!token) {
+      return res.status(401).json({ message: 'Non authentifié' });
+    }
+  
+    // Vérifiez le token en utilisant la clé secrète
+    jwt.verify(token, process.env.JWT_SECRET, (err, decodedUser) => {
+      if (err) {
+        // Si le token est invalide ou expiré, renvoyez une réponse de non-authentification
+        return res.status(401).json({ message: 'Non authentifié' });
+      }
+  
+      // Si le token est valide, attachez les informations de l'utilisateur décodées à la requête
+      req.user = decodedUser;
+      next(); // Continuez vers la route suivante
+    });
+  };
+
 module.exports = {
     isLoggedIn,
-    redirectIfLoggedIn
+    redirectIfLoggedIn,
+    requireAuth
 };

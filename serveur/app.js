@@ -22,12 +22,18 @@ const app = express();
 // Initialisation de la base de données
 initDatabase();
 
+
+app.use(cors({
+    origin: 'http://localhost:3000', // Remplacez par l'URL de votre application front-end (removed trailing slash)
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    credentials: true, // Activez les cookies CORS
+}));
 // Configuration de la sécurité
 app.use(helmet({
     contentSecurityPolicy: {
         directives: {
             defaultSrc: ["'self'"],
-            connectSrc: ["'self'", "localhost:3005"] // Autoriser les connexions à localhost:3005
+            // Autoriser les connexions à localhost:3005
             // Ajoutez ici d'autres directives si nécessaire
         }
     }
@@ -42,12 +48,11 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(session({
-    secret: process.env.JWT_SECRET,
+    secret: process.env.SESSION_SECRET, // Utilisez la clé secrète depuis .env
     resave: false,
     saveUninitialized: true,
     cookie: { secure: false }
 }));
-
 // Serve static files
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -72,10 +77,11 @@ app.use((req, res, next) => {
 });
 
 // Application routes
-app.use('/', userRoutes);
+app.use('/api', userRoutes);
 app.get('/', (req, res) => {
-    res.render('home', { user: req.user });
+    res.json({ message: 'Bienvenue!', user: req.user });
 });
+
 
 app.get('/protected', (req, res) => {
     if (req.user) {
@@ -83,12 +89,6 @@ app.get('/protected', (req, res) => {
     } else {
         res.status(401).json({ message: "Non authentifié" });
     }
-});
-
-// Fallback route for React frontend
-app.use(express.static(path.join(__dirname, '../client/build')));
-app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '../client/build', 'index.html'));
 });
 
 // Middleware for handling errors
@@ -99,13 +99,13 @@ app.use((err, req, res, next) => {
 
 // Handle 404 - always keep this as the last route
 app.use((req, res, next) => {
-    res.status(404).render('404');
+    res.status(404).json({ error: 'Page non trouvée' });
 });
 
-app.use(cors({
-    origin: 'http://localhost:3000', // Autorisez le domaine de votre frontend
-    credentials: true,  // Autoriser les cookies
-}));
+
+// Middleware pour gérer les CORS (Cross-Origin Resource Sharing)
+// Configuration CORS (avant l'utilisation de routes)
+
 
 app.listen('3005', () => {
     console.log('Serveur port : 3005');

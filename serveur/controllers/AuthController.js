@@ -2,21 +2,15 @@ const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 const dotenv = require('dotenv');
 const bcryptjs = require('bcryptjs');
-const path = require('path');
 
 // Chargement des variables d'environnement
 dotenv.config();
 
-exports.getRegister = (req, res) => {
-    res.sendFile(path.join(__dirname, '../../client/build', 'index.html'));
-};
-
 exports.postRegister = async (req, res) => {
     const { username, email, password } = req.body;
 
-    // Validation basique des entrées
     if (!username || !email || !password) {
-        return res.status(400).send('Tous les champs sont requis.');
+        return res.status(400).json({ message: 'Tous les champs sont requis.' });
     }
 
     try {
@@ -28,22 +22,19 @@ exports.postRegister = async (req, res) => {
             password: hashedPassword
         });
 
-        res.redirect('/login');
+        return res.status(201).json({ message: 'Inscription réussie.' });
+        
     } catch (error) {
         console.error(error);
-        res.status(500).send('Erreur lors de la création de l\'utilisateur. Veuillez réessayer.');
+        res.status(500).json({ message: 'Erreur lors de la création de l\'utilisateur. Veuillez réessayer.' });
     }
-};
-
-exports.getLogin = (req, res) => {
-    res.sendFile(path.join(__dirname, '../../client/build', 'index.html'));
 };
 
 exports.postLogin = async (req, res) => {
     const { email, password } = req.body;
 
     if (!email || !password) {
-        return res.status(400).send('Tous les champs sont requis.');
+        return res.status(400).json({ message: 'Tous les champs sont requis.' });
     }
 
     try {
@@ -63,17 +54,17 @@ exports.postLogin = async (req, res) => {
                 secure: false // Pour HTTPS, changez cela en 'true'
             });
 
-            res.redirect('/profil');
+            res.status(200).json({ message: 'Connexion réussie.' });
         } else {
-            res.status(401).send('Email ou mot de passe incorrect.');
+            res.status(401).json({ message: 'Email ou mot de passe incorrect.' });
         }
     } catch (error) {
         console.error(error);
-        res.status(500).send('Erreur lors de la connexion. Veuillez réessayer.');
+        res.status(500).json({ message: 'Erreur lors de la connexion. Veuillez réessayer.' });
     }
 };
 
 exports.logout = (req, res) => {
     res.clearCookie('token');
-    res.redirect('/login');
+    res.status(200).json({ message: 'Déconnexion réussie.' });
 };

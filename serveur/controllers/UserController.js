@@ -1,26 +1,20 @@
-//Importation des modules nécessaires
 const User = require('../models/User');
 const { userResponseParser } = require('../utils/userResponseParser');
-
-
 
 // Function pour récupérer le profil de l'utilisateur
 exports.getProfil = async (req, res) => {
     try {
-        // Chereche l'utilisateur en fonction de son id stocké dans le cookie
         const user = await User.findById(req.user.userId);
-        //si l'utilisateur n'existe pas, on renvoie une erreur
         if (!user) {
             return res.status(404).json({error: 'Utilisateur non trouvé'});
         }
-        // si l'utilisateur existe, on renvoie ses données
-        res.render('pages/profil', {user: userResponseParser(user)});
+
+        const userData = userResponseParser(user); // Supposant que cela renvoie un objet contenant les données de l'utilisateur
+        res.json(userData);
 
     } catch (error) {
         console.error(error);
-        // en cas d'erreur, on renvoie une erreur 500
-        res.status(500).send('Erreur de récupération du profil');
-
+        res.status(500).json({error: 'Erreur de récupération du profil'});
     }
 };
         
@@ -28,32 +22,25 @@ exports.getProfil = async (req, res) => {
 exports.updateProfil = async (req, res) => {
     try {
         const {username, email} = req.body;
+        const user = await User.findByIdAndUpdate(req.user.userId, {username, email}, {new: true});
 
-        // Mettre à jour l'utilisateur en fonction de son id stocké dans le cookie
-        await User.findByIdAndUpdate(req.user.userId, {username, email});
-
-        // Rediriger l'utilisateur vers la page profil
-        res.redirect('/profil');
+        const updatedData = userResponseParser(user); // Supposant que cela renvoie un objet contenant les données de l'utilisateur mises à jour
+        res.json(updatedData);
 
     } catch (error) {
         console.error(error);
-        // en cas d'erreur, on renvoie une erreur 500
-        res.status(500).send('Erreur de modification du profil');
+        res.status(500).json({error: 'Erreur de modification du profil'});
     }
 };
 
 // Function pour supprimer le profil de l'utilisateur
 exports.deleteProfil = async (req, res) => {
     try {
-        //Supprimer l'utilisateur en fonction de son id stocké dans le cookie
         await User.findByIdAndDelete(req.user.userId);
-        res.redirect('/register');
-    }
-    catch (error) {
+        res.json({success: 'Profil supprimé avec succès'});
+
+    } catch (error) {
         console.error(error);
-        // en cas d'erreur, on renvoie une erreur 500
-        res.status(500).send('Erreur lors de la suppression du profil');
+        res.status(500).json({error: 'Erreur lors de la suppression du profil'});
     }
 };
-
-// ajouter d'autres métgodes de votre choix pour gérer les autres fonctionnalités de votre application
