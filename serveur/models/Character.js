@@ -1,12 +1,18 @@
 const mongoose = require('mongoose');
 
+const techniqueSchema = new mongoose.Schema({
+  name: String,
+  power: Number,
+});
+
 const characterSchema = new mongoose.Schema({
   name: String,
+  hp: Number,
   strength: Number,
   defense: Number,
   stamina: Number,
   speed: Number,
-  technique: Array,
+  technique: [techniqueSchema],  // Array of technique objects
   imageURL: String,
 });
 
